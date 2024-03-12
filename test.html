@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Product CRUD</title>
+	<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+	<div class="container">
+		<h1>Product Management</h1>
+		<!-- Product Form for Create/Update -->
+		<form id="productForm">
+			<input type="hidden" id="productId">
+			<div class="form-group">
+				<label for="productName">Name:</label>
+				<input type="text" class="form-control" id="productName" required>
+			</div>
+			<div class="form-group">
+				<label for="productPrice">Price:</label>
+				<input type="number" class="form-control" id="productPrice" required>
+			</div>
+			<button type="submit" class="btn btn-primary">Submit</button>
+		</form>
+		<!-- Product List -->
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Price</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody id="productList"></tbody>
+		</table>
+	</div>
+	<script src="app.js"></script>
+</body>
+
+</html>
