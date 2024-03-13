@@ -1,8 +1,8 @@
 const api = "http://localhost:3000/api/product";
 let productData = [];
-let modal;
+let productId;
 let productTable = document.getElementById('product-table').getElementsByTagName('tbody')[0];
-let addProductModal;
+let deleteConfirmationModal;
 
 const loadData = async () => {
     try {
@@ -16,15 +16,22 @@ const loadData = async () => {
 
 const renderTable = () => {
     productTable.innerHTML = '';
-    productData.forEach((product, index) => {
+    productData.forEach((product) => {
         const row = document.createElement('tr');
         row.dataset.productId = product._id;
+
+        const updateButton = createButton('Edit', 'btn-primary', editProduct);
+        const deleteButton = createButton('Trash', 'btn-danger', confirmDeleteProduct);
 
         const nameCell = createTableCell(product.name);
         const priceCell = createTableCell(product.price);
         const detailCell = createTableCell(product.detail);
 
-        row.appendChild(createTableCell(index + 1));
+        const buttonCell = document.createElement('td');
+        buttonCell.appendChild(updateButton);
+        buttonCell.appendChild(deleteButton);
+
+        row.appendChild(buttonCell);
         row.appendChild(nameCell);
         row.appendChild(priceCell);
         row.appendChild(detailCell);
@@ -33,47 +40,54 @@ const renderTable = () => {
     });
 };
 
+function createButton(text, className, clickHandler) {
+    const button = document.createElement('button');
+    button.innerHTML = `<i class="fas fa-${text.toLowerCase()}"></i>`;
+    button.type = 'button';
+    button.classList.add('btn', className, 'btn-sm');
+    button.addEventListener('click', clickHandler);
+    return button;
+}
+
 function createTableCell(text) {
     const cell = document.createElement('td');
     cell.textContent = text;
     return cell;
 }
 
-async function createProduct(productData) {
-    try {
-        const res = await axios.post(api, productData);
-        if (res.status === 201) {
-            console.log("Product created:", res.data);
-            productData.push(res.data);
-            renderTable();
-            addProductModal.hide();
-        } else {
-            console.log("Failed to create product:", res.statusText);
-        }
-    } catch (error) {
-        console.log("Error creating product:", error);
+function editProduct(event) {
+    productId = event.target.closest('tr').dataset.productId;
+    const product = productData.find(product => product._id === productId);
+    if (!product) {
+        console.error("Error: Product not found");
+        return;
     }
+    const { name, price, detail } = product;
+    populateModal(name, price, detail, showUpdatemodal); // Corrected function name here
 }
 
-document.getElementById('addProductButton').addEventListener('click', function () {
-    addProductModal.show();
-});
 
-document.getElementById('saveChanges').addEventListener('click', function () {
-    const productName = document.getElementById('productName').value;
-    const productPrice = document.getElementById('productPrice').value;
-    const productDetail = document.getElementById('productDetail').value;
+function populateModal(name, price, detail, clickHandler) {
+    const productNameInput = document.getElementById('productName');
+    const productPriceInput = document.getElementById('productPrice');
+    const productDetailTextarea = document.getElementById('productDetail');
+    productNameInput.value = name;
+    productPriceInput.value = price;
+    productDetailTextarea.value = detail;
+    clickHandler();
+}
 
-    const newProduct = {
-        name: productName,
-        price: productPrice,
-        detail: productDetail
-    };
-    
-    createProduct(newProduct);
+function confirmDeleteProduct(event) {
+    productId = event.target.closest('tr').dataset.productId;
+    deleteConfirmationModal.show();
+}
+
+document.getElementById('confirmDelete').addEventListener('click', function () {
+    deleteProduct(productId);
+    deleteConfirmationModal.hide();
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    addProductModal = new bootstrap.Modal(document.getElementById('addproductModal'));
+    deleteConfirmationModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
     loadData();
 });

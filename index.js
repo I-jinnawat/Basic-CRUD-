@@ -1,6 +1,7 @@
 const api = "http://localhost:3000/api/product";
 let productData = [];
-let modal;
+let addmodal;
+let updatemodal;
 let productId;
 let productTable = document.getElementById('product-table').getElementsByTagName('tbody')[0];
 let deleteConfirmationModal;
@@ -58,6 +59,7 @@ function createTableCell(text) {
     return cell;
 }
 
+//WorkwhenSave
 async function updateProduct(productId, updateData) {
     try {
         const res = await axios.put(`${api}/${productId}`, updateData);
@@ -76,8 +78,7 @@ async function updateProduct(productId, updateData) {
     }
 }
 
-function showUpdatemodal() {
-    
+function showUpdatemodal() {  
     console.log("update modal")
     console.log(productId)
     updatemodal.show(); 
@@ -91,7 +92,7 @@ function editProduct(event) {
         return;
     }
     const { name, price, detail } = product;
-    populateModal(name, price, detail,showUpdatemodal);
+    populateModal(name, price, detail,updatemodal);
 }
 
 function populateModal(name, price, detail,clickHandler ) {
@@ -104,7 +105,7 @@ function populateModal(name, price, detail,clickHandler ) {
     productPriceInput.value = price;
     productDetailTextarea.value = detail;
     
-    clickHandler(); // Execute the provided click handler function to show the modal
+    clickHandler.show();
 }
 
 async function deleteProduct(productId) {
@@ -135,9 +136,11 @@ document.getElementById('confirmDelete').addEventListener('click', function() {
 async function createProduct(productData) {
     try {
         const res = await axios.post(api, productData);
-        if (res.status === 200) { // Corrected status check to 201
+        console.log("Response status:", res.status);
+        if (res.status === 200 || res.status === 201) {
             console.log("Product created:", res.data);
             appendNewProduct(res.data); // Append the newly created product directly to the table
+            addmodal.hide();
         } else {
             console.log("Failed to create product:", res.status);
         }
@@ -145,6 +148,7 @@ async function createProduct(productData) {
         console.log("Error creating product:", error);
     }
 }
+
 
 
 
@@ -172,30 +176,35 @@ function appendNewProduct(product) {
 }
 
 function showAddProductModal() {
-    console.log("showadd")
   addmodal.show();
 }
 
 document.getElementById('addProductButton').addEventListener('click', function() {  
-    
-    populateModal('', '', '',showAddProductModal); 
+    document.getElementById("UpdateModalLabel").innerHTML ='Add product'
+    populateModal('', '', '',addmodal); 
     
 });
 
 
-document.getElementById('saveNewProduct').addEventListener('click',() =>{
+document.getElementById('saveUpdate').addEventListener('click',() =>{
     const updatedName = document.getElementById('productName').value;
     const updatedPrice = document.getElementById('productPrice').value;
     const updatedDetail = document.getElementById('productDetail').value;
-    if (productId) {
-        updateProduct(productId, { name: updatedName, price: updatedPrice, detail: updatedDetail });
-    }else{
+    updateProduct(productId, { name: updatedName, price: updatedPrice, detail: updatedDetail });
+    updatemodal.hide();
+});
+document.getElementById('saveAdd').addEventListener('click',() =>{
+    const updatedName = document.getElementById('productName').value;
+    const updatedPrice = document.getElementById('productPrice').value;
+    const updatedDetail = document.getElementById('productDetail').value;
+    
+   
         console.log(productId)
         const newProduct = { name: updatedName, price: updatedPrice, detail: updatedDetail };
         createProduct(newProduct);
-    }
+    
     addmodal.hide();
-    updatemodal.hide();
+    
 });
 
 
@@ -205,4 +214,4 @@ document.addEventListener('DOMContentLoaded', () => {
     updatemodal = new bootstrap.Modal(document.getElementById('updateproductModal'));
     loadData();
 
-});
+}); 
