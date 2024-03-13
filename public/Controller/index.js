@@ -1,9 +1,8 @@
 const api = "http://localhost:3000/api/product";
 let productData = [];
-let modal;
-let productId;
-let productTable = document.getElementById('product-table').getElementsByTagName('tbody')[0];
 let deleteConfirmationModal;
+let addproductModal;
+let updateproductModal;
 
 const loadData = async () => {
     try {
@@ -11,13 +10,13 @@ const loadData = async () => {
         productData = res.data;
         renderTable();
     } catch (error) {
-        console.error("Can't load Data:",error);
+        console.error("Can't load Data because:", error);
     }
 };
 
-
-//Show Table
+// Show Table
 const renderTable = () => {
+    const productTable = document.getElementById('product-table').getElementsByTagName('tbody')[0];
     productTable.innerHTML = '';
     productData.forEach((product) => {
         const row = document.createElement('tr');
@@ -76,13 +75,6 @@ async function updateProduct(productId, updateData) {
     }
 }
 
-function showUpdatemodal() {
-    
-    console.log("update modal")
-    console.log(productId)
-    updatemodal.show(); // Assuming addmodal is the modal for adding a product
-}
-
 function editProduct(event) {
     productId = event.target.closest('tr').dataset.productId;
     const product = productData.find(product => product._id === productId);
@@ -91,19 +83,18 @@ function editProduct(event) {
         return;
     }
     const { name, price, detail } = product;
-    populateModal(name, price, detail,showUpdatemodal);
+    populateModal(name, price, detail, updateproductModal);
 }
 
-function populateModal(name, price, detail, clickHandler) {
-    console.log('populate')
-    console.log(`${name}, ${price},${detail}`)
-    const productNameInput = document.getElementById('productName');
-    const productPriceInput = document.getElementById('productPrice');
-    const productDetailTextarea = document.getElementById('productDetail');
+function populateModal(name, price, detail, modal) {
+    const productNameInput = document.getElementById('productNameUpdate');
+    const productPriceInput = document.getElementById('productPriceUpdate');
+    const productDetailTextarea = document.getElementById('productDetailUpdate');
     productNameInput.value = name;
     productPriceInput.value = price;
     productDetailTextarea.value = detail;
-    clickHandler(); // Execute the provided click handler function to show the modal
+
+    modal.show();
 }
 
 async function deleteProduct(productId) {
@@ -132,13 +123,25 @@ document.getElementById('confirmDelete').addEventListener('click', function() {
 });
 
 async function createProduct(productData) {
+    const { name, price, detail } = productData;
+
+    if (!name || !price || !detail) {
+        console.log("Please fill in all fields");
+        return;
+    }
+
     try {
-        const res = await axios.post(api, productData);
-        if (res.status === 201) {
-            console.log("Product created:", res.data);
-            appendNewProduct(res.data); // Append the newly created product directly to the table
+        const response = await axios.post(api, {
+            name: name,
+            price: price,
+            detail: detail
+        });
+
+        if (response.status === 200 || response.status === 201) {
+            console.log("Product created:", response.data);
+            appendNewProduct(response.data);
         } else {
-            console.log("Failed to create product:", res.statusText);
+            console.log("Failed to create product:", response.status);
         }
     } catch (error) {
         console.log("Error creating product:", error);
@@ -146,6 +149,7 @@ async function createProduct(productData) {
 }
 
 function appendNewProduct(product) {
+    const productTable = document.getElementById('product-table').getElementsByTagName('tbody')[0];
     const row = document.createElement('tr');
     row.dataset.productId = product._id;
 
@@ -168,41 +172,32 @@ function appendNewProduct(product) {
     productTable.appendChild(row);
 }
 
-function showAddProductModal() {
-    console.log('ADD modal')     
-    console.log(productId)
-    addmodal.show(); // Assuming addmodal is the modal for adding a product
-}
-
-document.getElementById('addProductButton').addEventListener('click', function() {       
-      
-    populateModal('', '', '',showAddProductModal); 
-    
+document.getElementById('addProductButton').addEventListener('click', function() {
+    const { name, price, detail } = "";
+    populateModal(name, price, detail, addproductModal);
 });
 
+document.getElementById('saveUpdate').addEventListener('click',() => {
+    const updatedName = document.getElementById('productNameUpdate').value;
+    const updatedPrice = document.getElementById('productPriceUpdate').value;
+    const updatedDetail = document.getElementById('productDetailUpdate').value;
+    updateProduct(productId, { name: updatedName, price: updatedPrice, detail: updatedDetail });
+    updateproductModal.hide();
+});
 
-document.getElementById('saveChanges').addEventListener('click', function() {
-    const updatedName = document.getElementById('productName').value;
-    const updatedPrice = document.getElementById('productPrice').value;
-    const updatedDetail = document.getElementById('productDetail').value;
-    console.log('click save')
-    
-    if (productId) {
-        console.log('update')
-        updateProduct(productId, { name: updatedName, price: updatedPrice, detail: updatedDetail });
-    }else{
-        console.log(productId)
-        const newProduct = { name: updatedName, price: updatedPrice, detail: updatedDetail };
-        createProduct(newProduct);
-    }
+document.getElementById('Saveadd').addEventListener('click', () => {
+    const productName = document.getElementById('productNameAdd').value;
+    const productPrice = document.getElementById('productPriceAdd').value;
+    const productDetail = document.getElementById('productDetailAdd').value;
 
-    addmodal.hide();
-    updatemodal.hide();
+    const newProduct = { name: productName, price: productPrice, detail: productDetail };
+    createProduct(newProduct);
+    addproductModal.hide();
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    addmodal = new bootstrap.Modal(document.getElementById('addproductModal'));
-    updatemodal = new bootstrap.Modal(document.getElementById('updateproductModal'));
     deleteConfirmationModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
+    addproductModal = new bootstrap.Modal(document.getElementById('addproductModal'));
+    updateproductModal = new bootstrap.Modal(document.getElementById('updateproductModal'));
     loadData();
 });

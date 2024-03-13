@@ -22,7 +22,9 @@ const port = 5000;
 // readdirSync('./Routes')
 //     .map((r) =>app.use('/api',require('./Routes/' + r)))
 
-app.get('/', indexController)
+app.get('/', function(request, response){
+    response.sendFile('index2.html');
+});
 
 
 app.listen(port,()=> console.log(`Server is running at prot ${port}`))
